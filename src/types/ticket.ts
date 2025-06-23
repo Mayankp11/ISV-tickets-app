@@ -1,11 +1,11 @@
-export interface Ticket {
+export type Ticket = {
   name: string
   email: string
   phone?: string
-  books: string[]
-  bookPrices: {
-    [book: string]: number
-  }
   date: string
   time: string
+  books: string[]
+  bookPrices: Record<string, number>
+  totalOverride?: number;
+  donation?: number;
 }
