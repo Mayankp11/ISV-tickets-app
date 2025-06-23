@@ -12,6 +12,8 @@ import {
   VStack,
   IconButton,
   HStack,
+  InputLeftElement,
+  InputGroup,
 } from "@chakra-ui/react";
 import { AddIcon, MinusIcon } from "@chakra-ui/icons";
 import { RiDeleteBin7Line } from "react-icons/ri";
@@ -46,7 +48,7 @@ const TicketForm = () => {
   const [customBookPrice, setCustomBookPrice] = useState("");
   const [selectedBooks, setSelectedBooks] = useState<BookItem[]>([]);
   const [overrideTotal, setOverrideTotal] = useState<string | null>(null);
-
+  const [donationAmount, setDonationAmount] = useState<string>("");
 
   const toast = useToast();
   const navigate = useNavigate();
@@ -112,6 +114,7 @@ const TicketForm = () => {
         return acc;
       }, {} as Record<string, number>),
       totalOverride: overrideTotal ? parseFloat(overrideTotal) : undefined,
+      donation: donationAmount ? parseFloat(donationAmount) : 0,
     };
 
     try {
@@ -238,6 +241,38 @@ const TicketForm = () => {
               />
             </FormControl>
           </Box>
+        )}
+
+        <Box borderWidth="1px" p={4} borderRadius="md">
+          <FormControl>
+            <FormLabel>Would you like to make a donation?</FormLabel>
+            <InputGroup>
+              <InputLeftElement
+                pointerEvents="none"
+                color="gray.500"
+                fontSize="1em"
+              >
+                $
+              </InputLeftElement>
+              <Input
+                type="number"
+                placeholder="Enter donation amount"
+                value={donationAmount}
+                onChange={(e) => setDonationAmount(e.target.value)}
+                min={0}
+                pl="2.5rem" // optional: extra padding if needed
+              />
+            </InputGroup>
+          </FormControl>
+        </Box>
+        {(selectedBooks.length > 0 || donationAmount) && (
+          <Text fontWeight="bold" fontSize="lg">
+            Final Total: $
+            {(
+              (overrideTotal ? parseFloat(overrideTotal) : totalPrice) +
+              (donationAmount ? parseFloat(donationAmount) : 0)
+            ).toFixed(2)}
+          </Text>
         )}
 
         <FormControl isRequired>
