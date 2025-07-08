@@ -1,6 +1,7 @@
 import {
   Box,
   Button,
+  Checkbox,
   FormControl,
   FormLabel,
   Heading,
@@ -48,7 +49,16 @@ const TicketForm = () => {
   const [customBookPrice, setCustomBookPrice] = useState("");
   const [selectedBooks, setSelectedBooks] = useState<BookItem[]>([]);
   const [overrideTotal, setOverrideTotal] = useState<string | null>(null);
+  const [donationSelected, setDonationSelected] = useState(false);
   const [donationAmount, setDonationAmount] = useState<string>("");
+
+  const [currentDateTime] = useState(() => {
+    const now = new Date();
+    return {
+      date: now.toLocaleDateString(),
+      time: now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+    };
+  });
 
   const toast = useToast();
   const navigate = useNavigate();
@@ -108,19 +118,25 @@ const TicketForm = () => {
   const handleSubmit = async () => {
     const payload: Ticket = {
       ...form,
+      date: currentDateTime.date,
+      time: currentDateTime.time,
       books: selectedBooks.map((b) => b.name),
       bookPrices: selectedBooks.reduce((acc, book) => {
         acc[book.name] = book.price * book.quantity;
         return acc;
       }, {} as Record<string, number>),
       totalOverride: overrideTotal ? parseFloat(overrideTotal) : undefined,
-      donation: donationAmount ? parseFloat(donationAmount) : 0,
+      donation: donationSelected
+        ? donationAmount
+          ? parseFloat(donationAmount)
+          : 0
+        : 0,
     };
 
     try {
       await api.post("/tickets", payload);
       toast({ title: "Ticket submitted successfully!", status: "success" });
-      navigate("/success");
+      // navigate("/success");
     } catch (error) {
       toast({ title: "Submission failed", status: "error" });
     }
@@ -132,32 +148,60 @@ const TicketForm = () => {
   );
 
   return (
-    <Box p={6} maxW="lg" mx="auto">
-      <Heading mb={6}>Book a Ticket</Heading>
-      <VStack spacing={4} align="stretch">
+    <Box
+      p={6}
+      maxW="lg"
+      mx="auto"
+      fontFamily="'Segoe UI', Tahoma, Geneva, Verdana, sans-serif"
+    >
+      <HStack
+        justifyContent="space-between"
+        mb={6}
+        spacing={6}
+        fontFamily="'Roboto', sans-serif"
+      >
+        <Heading fontSize={{ base: "2xl", md: "3xl" }} fontWeight="300">
+          Create a Ticket
+        </Heading>
+        <Box textAlign="right">
+          <Text fontWeight="300" fontSize={{ base: "md", md: "lg" }}>
+            Date: {currentDateTime.date}
+          </Text>
+          <Text fontWeight="300" fontSize={{ base: "md", md: "lg" }} mt={1}>
+            Time: {currentDateTime.time}
+          </Text>
+        </Box>
+      </HStack>
+
+      <VStack spacing={4} align="stretch" fontSize={{ base: "sm", md: "md" }}>
         <FormControl isRequired>
-          <FormLabel>Name</FormLabel>
+          <FormLabel fontSize={{ base: "md", md: "lg" }}>Name</FormLabel>
           <Input name="name" onChange={handleInputChange} />
         </FormControl>
 
         <FormControl>
-          <FormLabel>Email (optional)</FormLabel>
+          <FormLabel fontSize={{ base: "md", md: "lg" }}>
+            Email (optional)
+          </FormLabel>
           <Input name="email" type="email" onChange={handleInputChange} />
         </FormControl>
 
         <FormControl>
-          <FormLabel>Phone (optional)</FormLabel>
+          <FormLabel fontSize={{ base: "md", md: "lg" }}>
+            Phone (optional)
+          </FormLabel>
           <Input name="phone" onChange={handleInputChange} />
         </FormControl>
 
         <FormControl>
-          <FormLabel>Select Book</FormLabel>
+          <FormLabel fontSize={{ base: "md", md: "lg" }}>Select Book</FormLabel>
           <Stack>
             <HStack>
               <Select
                 placeholder="Choose a book"
                 value={bookInput}
                 onChange={(e) => setBookInput(e.target.value)}
+                fontSize={{ base: "sm", md: "md" }}
               >
                 {BOOK_OPTIONS.map((book) => (
                   <option key={book.label} value={book.label}>
@@ -165,7 +209,9 @@ const TicketForm = () => {
                   </option>
                 ))}
               </Select>
-              <Button onClick={handleAddBook}>Add</Button>
+              <Button size="sm" onClick={handleAddBook}>
+                Add
+              </Button>
             </HStack>
             {bookInput === "Other" && (
               <>
@@ -174,6 +220,7 @@ const TicketForm = () => {
                   value={customBookName}
                   onChange={(e) => setCustomBookName(e.target.value)}
                   mt={2}
+                  fontSize={{ base: "sm", md: "md" }}
                 />
                 <Input
                   placeholder="Enter price"
@@ -181,6 +228,7 @@ const TicketForm = () => {
                   value={customBookPrice}
                   onChange={(e) => setCustomBookPrice(e.target.value)}
                   mt={2}
+                  fontSize={{ base: "sm", md: "md" }}
                 />
               </>
             )}
@@ -189,13 +237,20 @@ const TicketForm = () => {
 
         {selectedBooks.length > 0 && (
           <Box borderWidth="1px" p={4} borderRadius="md">
-            <Heading size="sm" mb={3}>
+            <Heading size="sm" mb={3} fontSize={{ base: "md", md: "lg" }}>
               Selected Books
             </Heading>
             <VStack spacing={3} align="stretch">
               {selectedBooks.map((book) => (
-                <HStack key={book.name} justify="space-between">
-                  <Text fontWeight="medium">{book.name}</Text>
+                <HStack
+                  key={book.name}
+                  justify="space-between"
+                  flexWrap="wrap"
+                  fontSize={{ base: "sm", md: "md" }}
+                >
+                  <Text fontWeight="medium" minW="120px">
+                    {book.name}
+                  </Text>
                   <HStack>
                     <IconButton
                       size="sm"
@@ -211,7 +266,7 @@ const TicketForm = () => {
                       onClick={() => updateQuantity(book.name, 1)}
                     />
                   </HStack>
-                  <Text>
+                  <Text minW="120px" textAlign="right">
                     ${book.price.toFixed(2)} × {book.quantity} = $
                     {(book.price * book.quantity).toFixed(2)}
                   </Text>
@@ -224,33 +279,29 @@ const TicketForm = () => {
                 </HStack>
               ))}
             </VStack>
-
-            <FormControl mt={4}>
-              <FormLabel fontWeight="bold">
-                Total Price (optional override)
-              </FormLabel>
-              <Input
-                type="number"
-                value={overrideTotal ?? totalPrice.toFixed(2)}
-                onChange={(e) => {
-                  const val = e.target.value;
-                  if (parseFloat(val) >= 0 || val === "") {
-                    setOverrideTotal(val);
-                  }
-                }}
-              />
-            </FormControl>
           </Box>
         )}
 
-        <Box borderWidth="1px" p={4} borderRadius="md">
+        <FormControl>
+          <Checkbox
+            isChecked={donationSelected}
+            onChange={(e) => {
+              setDonationSelected(e.target.checked);
+              if (!e.target.checked) setDonationAmount("");
+            }}
+            fontSize={{ base: "md", md: "lg" }}
+          >
+            Would you like to make a donation?
+          </Checkbox>
+        </FormControl>
+
+        {donationSelected && (
           <FormControl>
-            <FormLabel>Would you like to make a donation?</FormLabel>
             <InputGroup>
               <InputLeftElement
                 pointerEvents="none"
                 color="gray.500"
-                fontSize="1em"
+                fontSize={{ base: "sm", md: "md" }}
               >
                 $
               </InputLeftElement>
@@ -260,32 +311,27 @@ const TicketForm = () => {
                 value={donationAmount}
                 onChange={(e) => setDonationAmount(e.target.value)}
                 min={0}
-                pl="2.5rem" // optional: extra padding if needed
+                step="0.01"
+                pl="2.5rem"
+                fontSize={{ base: "sm", md: "md" }}
               />
             </InputGroup>
           </FormControl>
-        </Box>
-        {(selectedBooks.length > 0 || donationAmount) && (
-          <Text fontWeight="bold" fontSize="lg">
+        )}
+
+        {(selectedBooks.length > 0 || (donationSelected && donationAmount)) && (
+          <Text fontWeight="bold" fontSize={{ base: "lg", md: "xl" }} mt={2}>
             Final Total: $
             {(
               (overrideTotal ? parseFloat(overrideTotal) : totalPrice) +
-              (donationAmount ? parseFloat(donationAmount) : 0)
+              (donationSelected && donationAmount
+                ? parseFloat(donationAmount)
+                : 0)
             ).toFixed(2)}
           </Text>
         )}
 
-        <FormControl isRequired>
-          <FormLabel>Date</FormLabel>
-          <Input type="date" name="date" onChange={handleInputChange} />
-        </FormControl>
-
-        <FormControl isRequired>
-          <FormLabel>Time</FormLabel>
-          <Input type="time" name="time" onChange={handleInputChange} />
-        </FormControl>
-
-        <Button colorScheme="teal" onClick={handleSubmit}>
+        <Button colorScheme="teal" size="md" onClick={handleSubmit}>
           Submit Ticket
         </Button>
       </VStack>
