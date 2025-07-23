@@ -8,18 +8,25 @@ import {
   useToast,
   VStack,
   IconButton,
-  HStack
+  HStack,
+  Select
 } from '@chakra-ui/react';
 import { AddIcon, CloseIcon } from '@chakra-ui/icons';
+import type { Book } from '../types/Book';
 
 const TicketForm = () => {
   const toast = useToast();
+
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     phone: '',
     books: [''],
   });
+
+const [books, setBooks] = useState<Book[]>([]);
+const [selectedBookName, setSelectedBookName] = useState<Book[]>([]);
+const [customBookName, setCustomBookName] = useState('');
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -100,25 +107,20 @@ const TicketForm = () => {
       </FormControl>
 
       <FormControl mb={4}>
-        <FormLabel>Books</FormLabel>
-        <VStack spacing={2} align="stretch">
-          {formData.books.map((book, idx) => (
-            <HStack key={idx}>
-              <Input
-                placeholder={`Book ${idx + 1}`}
-                value={book}
-                onChange={(e) => handleBookChange(idx, e.target.value)}
-              />
-              {formData.books.length > 1 && (
-                <IconButton
-                  icon={<CloseIcon />}
-                  aria-label="Remove book"
-                  size="sm"
-                  onClick={() => removeBookField(idx)}
-                />
-              )}
-            </HStack>
-          ))}
+        <FormLabel>Select Book</FormLabel>
+        <Select placeholder="Select Book" value={selectedBookName} onChange={(e) => setSelectedBookName(e.target.value)}>
+          <option value="Bhagvad Gita">Bhagvad Gita ($10)</option>
+          <option value="Bhagvatam Set">Bhagvatam Set ($150)</option>
+          <option value="Other">Other</option>
+        </Select>
+      </FormControl>
+
+      {selectedBookName === 'Other' && (
+        <FormControl mb={4}>
+          <FormLabel>Custom Book Name</FormLabel>
+          <Input value={customBookName} onChange={(e) => setCustomBookName(e.target.value)} />
+        </FormControl>
+      )}
           <Button
             leftIcon={<AddIcon />}
             onClick={addBookField}
@@ -128,8 +130,7 @@ const TicketForm = () => {
           >
             Add Book
           </Button>
-        </VStack>
-      </FormControl>
+       
 
       <Button colorScheme="teal" onClick={handleSubmit}>
         Submit Ticket

@@ -1,14 +1,11 @@
-import { BrowserRouter, Route, Routes } from "react-router-dom"
-import TicketForm from "./pages/TicketForm"
+import TicketForm from "./components/TicketForm"
 
 
 const App = () => {
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<TicketForm/>}/>
-      </Routes>
-    </BrowserRouter>
+  <>
+  <TicketForm/>
+  </>
   )
 }
 

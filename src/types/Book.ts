@@ -1,5 +1,5 @@
 export interface Book {
-    name: 'Bhagvad Gita' | 'Bhagvatam Set' | 'Other';
+    name:'Select Books' | 'Bhagvad Gita' | 'Bhagvatam Set' | 'Other';
     price: number;
     customName?: string;
 }
